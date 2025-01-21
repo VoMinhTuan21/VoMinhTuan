@@ -46,6 +46,8 @@ const MySelect: React.FC<Props> = (props) => {
 		setSelected(opt);
 		setShowList(false);
 		onChange?.(opt.value);
+		setListOptions(options);
+		setSearch("");
 	};
 
 	useEffect(() => {

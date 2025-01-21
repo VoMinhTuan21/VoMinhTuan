@@ -12,7 +12,7 @@ const prices_1 = require("./model/prices");
 const utils_1 = require("../utils");
 let SwapCurrencyService = class SwapCurrencyService {
     getAll() {
-        return prices_1.prices.map(coin => coin.currency);
+        return Array.from(new Set(prices_1.prices.map(coin => coin.currency)));
     }
     exchange(data) {
         const from = utils_1.Utils.findTheLatest(prices_1.prices.filter(item => item.currency === data.from));

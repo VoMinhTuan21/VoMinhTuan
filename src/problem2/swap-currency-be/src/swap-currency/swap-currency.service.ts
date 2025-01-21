@@ -5,7 +5,7 @@ import { Utils } from 'src/utils';
 @Injectable()
 export class SwapCurrencyService {
   getAll() {
-    return prices.map(coin => coin.currency);
+    return Array.from(new Set(prices.map(coin => coin.currency)));
   }
 
   exchange(data: ExchangeCurrencyDTO) {
