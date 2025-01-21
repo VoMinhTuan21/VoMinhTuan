@@ -3,7 +3,7 @@ import clsx from "clsx";
 import { useEffect, useRef, useState } from "react";
 import styles from "./my-select.module.scss";
 
-type Option = {
+export type Option = {
 	label: string;
 	value: string;
 	icon: string;
@@ -62,7 +62,15 @@ const MySelect: React.FC<Props> = (props) => {
 	}, [value]);
 
 	useEffect(() => {
+		setListOptions(options);
+	}, [options])
+
+	useEffect(() => {
 		const timer = setTimeout(() => {
+			if (!search) {
+				setListOptions(options);
+				return;
+			}
 			setListOptions(options.filter((opt) => opt.label.toLowerCase().includes(search)));
 		}, 500);
 

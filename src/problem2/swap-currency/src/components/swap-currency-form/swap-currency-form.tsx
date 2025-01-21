@@ -1,7 +1,8 @@
-import { Button, Flex, Form, FormProps, Input, InputNumber, Select, Space } from "antd";
+import { Button, Form, FormProps, InputNumber, notification } from "antd";
+import { useEffect, useState } from "react";
+import swapCurrencyService from "../../services/swap-currency.service";
+import MySelect, { Option } from "../my-select/my-select";
 import styles from "./swap-currency-form.module.scss";
-import MySelect from "../my-select/my-select";
-
 type FieldType = {
 	amount: number;
 	from: string;
@@ -9,32 +10,49 @@ type FieldType = {
 };
 
 export default function SwapCurrencyForm() {
-	const options = [
-		{
-			value: "ZIL",
-			label: "ZIL",
-			icon: "/images/tokens/ZIL.svg",
-		},
-		{
-			value: "ATOM",
-			label: "ATOM",
-			icon: "/images/tokens/ATOM.svg",
-		},
-		{
-			value: "BLUR",
-			label: "BLUR",
-			icon: "/images/tokens/BLUR.svg",
-		},
-	];
+	const [options, setOptions] = useState<Option[]>([]);
+	const [result, setResult] = useState<number>();
+	const [isSubmitting, setIsSubmitting] = useState(false);
+	const [form] = Form.useForm<FieldType>();
+	const [api, _] = notification.useNotification();
 
-	const onFinish: FormProps<FieldType>["onFinish"] = (values) => {
-		console.log("Success:", values);
+	const onFinish: FormProps<FieldType>["onFinish"] = async (values) => {
+		try {
+			setIsSubmitting(true);
+			setTimeout(async () => {
+				const response = await swapCurrencyService.exchange(values);
+				setResult(response.data);
+				setIsSubmitting(false);
+			}, 1000);
+		} catch (error) {
+			api['error']({
+				message: "Error",
+				description: "An error happened. Please contact the owner of the web"
+			})
+			setIsSubmitting(false);
+		}
 	};
+
+	const resultText = () => {
+		return `${form.getFieldValue("amount")} ${form.getFieldValue("from")} = ${result} ${form.getFieldValue("to")}`;
+	};
+
+	useEffect(() => {
+		swapCurrencyService.getAllCurrency().then((data) => {
+			setOptions(
+				data.data.map((item) => ({
+					label: item,
+					value: item,
+					icon: `/images/tokens/${item}.svg`,
+				}))
+			);
+		});
+	}, []);
 
 	return (
 		<div className={styles["swap-currency-form__container"]}>
 			<h4 className={styles["swap-currency-form__title"]}>Swap Currency</h4>
-			<Form onFinish={onFinish} className={styles["swap-currency-form__form"]} layout="vertical">
+			<Form form={form} onFinish={onFinish} className={styles["swap-currency-form__form"]} layout="vertical">
 				<Form.Item<FieldType>
 					label="Amount"
 					name="amount"
@@ -54,7 +72,18 @@ export default function SwapCurrencyForm() {
 						<MySelect options={options} />
 					</Form.Item>
 				</div>
-				<Button htmlType="submit" type="primary" block>
+				{isSubmitting ? (
+					<Form.Item>
+						<span className={styles["swap-currency-form__form--result"]}>We are calculating...</span>
+					</Form.Item>
+				) : (
+					result !== undefined && (
+						<Form.Item>
+							<span className={styles["swap-currency-form__form--result"]}>{resultText()}</span>
+						</Form.Item>
+					)
+				)}
+				<Button htmlType="submit" type="primary" block loading={isSubmitting}>
 					Exchange now!
 				</Button>
 			</Form>
