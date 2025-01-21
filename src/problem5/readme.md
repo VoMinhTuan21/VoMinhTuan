@@ -43,7 +43,7 @@ npm install
 To create build folder, run:
 
 ```bash
-npm install
+npm run build
 ```
 you should run it before start the application after cloning the project
 
